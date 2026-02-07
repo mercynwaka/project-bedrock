@@ -37,6 +37,20 @@ resource "helm_release" "aws_load_balancer_controller" {
   set {
     name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
     value = module.lb_role.iam_role_arn
+
+  set {
+    name  = "replicaCount"
+    value = "1"
+  }
+  
+  # Reduce its resource usage
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+  set {
+    name  = "resources.requests.memory"
+    value = "64Mi"
   }
 }
 

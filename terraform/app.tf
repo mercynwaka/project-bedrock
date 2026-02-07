@@ -65,6 +65,49 @@ resource "helm_release" "retail_app" {
     value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["password"]
   }
 
+  # --- CRITICAL: SHRINK PODS FOR T3.MICRO ---
+  # These settings force the app to fit on tiny nodes
+  
+  # 1. Reduce UI
+  set {
+    name  = "ui.resources.requests.cpu"
+    value = "100m"
+  }
+  set {
+    name  = "ui.resources.requests.memory"
+    value = "128Mi"
+  }
+
+  # 2. Reduce Catalog
+  set {
+    name  = "catalog.resources.requests.cpu"
+    value = "100m"
+  }
+  set {
+    name  = "catalog.resources.requests.memory"
+    value = "128Mi"
+  }
+
+  # 3. Reduce Orders
+  set {
+    name  = "orders.resources.requests.cpu"
+    value = "100m"
+  }
+  set {
+    name  = "orders.resources.requests.memory"
+    value = "128Mi"
+  }
+  
+  # 4. Reduce Checkout
+  set {
+    name  = "checkout.resources.requests.cpu"
+    value = "100m"
+  }
+  set {
+    name  = "checkout.resources.requests.memory"
+    value = "128Mi"
+  }
+
   depends_on = [
     kubernetes_namespace.retail_app,
     module.eks,

@@ -45,11 +45,12 @@ module "eks" {
   enable_irsa = true
 
   eks_managed_node_groups = {
-    initial = {
+    free-tier-nodes = {
       min_size       = 1
-      max_size       = 2
-      desired_size   = 1
-      instance_types = ["t3.medium"]
+      max_size       = 4
+      desired_size   = 3
+      instance_types = ["t3.micro"]
+      disk_size = 20
       # Add policy for SSM (helpful for debugging)
       iam_role_additional_policies = {
         AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
