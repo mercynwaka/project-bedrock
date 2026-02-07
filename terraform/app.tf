@@ -67,7 +67,7 @@ resource "helm_release" "retail_app" {
 
   # --- CRITICAL: SHRINK PODS FOR T3.MICRO ---
   # These settings force the app to fit on tiny nodes
-  
+
   # 1. Reduce UI
   set {
     name  = "ui.resources.requests.cpu"
@@ -97,7 +97,7 @@ resource "helm_release" "retail_app" {
     name  = "orders.resources.requests.memory"
     value = "128Mi"
   }
-  
+
   # 4. Reduce Checkout
   set {
     name  = "checkout.resources.requests.cpu"

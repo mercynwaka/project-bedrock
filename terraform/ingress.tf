@@ -1,8 +1,8 @@
 # --- IAM Role for LB Controller ---
 module "lb_role" {
-  
-source                                   = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-version = "~> 5.39"     
+
+  source                                 = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version                                = "~> 5.39"
   role_name                              = "bedrock-eks-lb-controller"
   attach_load_balancer_controller_policy = true
   oidc_providers = {
@@ -26,28 +26,33 @@ resource "helm_release" "aws_load_balancer_controller" {
     name  = "clusterName"
     value = module.eks.cluster_name
   }
+
   set {
     name  = "serviceAccount.create"
     value = "true"
   }
+
   set {
     name  = "serviceAccount.name"
     value = "aws-load-balancer-controller"
   }
+
   set {
     name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
     value = module.lb_role.iam_role_arn
+  } # <--- You were missing this brace!
 
   set {
     name  = "replicaCount"
     value = "1"
-  }
-  
+  } # <--- And this one!
+
   # Reduce its resource usage
   set {
     name  = "resources.requests.cpu"
     value = "100m"
   }
+
   set {
     name  = "resources.requests.memory"
     value = "64Mi"

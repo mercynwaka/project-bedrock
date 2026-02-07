@@ -50,7 +50,7 @@ module "eks" {
       max_size       = 4
       desired_size   = 3
       instance_types = ["t3.micro"]
-      disk_size = 20
+      disk_size      = 20
       # Add policy for SSM (helpful for debugging)
       iam_role_additional_policies = {
         AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
