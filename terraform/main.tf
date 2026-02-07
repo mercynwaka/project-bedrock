@@ -45,10 +45,10 @@ module "eks" {
   enable_irsa = true
 
   eks_managed_node_groups = {
-    general = {
-      min_size       = 2
-      max_size       = 3
-      desired_size   = 2
+    initial = {
+      min_size       = 1
+      max_size       = 2
+      desired_size   = 1
       instance_types = ["t3.medium"]
       # Add policy for SSM (helpful for debugging)
       iam_role_additional_policies = {
