@@ -9,7 +9,7 @@ resource "kubernetes_namespace" "retail_app" {
 resource "helm_release" "retail_app" {
   name       = "retail-store-sample-app"
   repository = "oci://public.ecr.aws/aws-containers"
-  chart      = "retail-store-sample-app"
+  chart      = "retail-store-sample-chart"
   version    = "0.5.0" # This version bundles the compatible UI
   namespace  = "retail-app"
 

@@ -54,6 +54,9 @@ module "eks" {
       # Add policy for SSM (helpful for debugging)
       iam_role_additional_policies = {
         AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+
+        CloudWatchAgentServerPolicy = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+
       }
     }
   }
@@ -64,9 +67,4 @@ module "eks" {
   tags = { Project = "Bedrock" }
 }
 
-# --- OBSERVABILITY  ---
-resource "aws_eks_addon" "cloudwatch_observability" {
-  cluster_name = module.eks.cluster_name
-  addon_name   = "amazon-cloudwatch-observability"
-  depends_on   = [module.eks.eks_managed_node_groups]
-}
+
