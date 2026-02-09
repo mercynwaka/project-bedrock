@@ -1,21 +1,42 @@
-# --- SECURITY GROUP FOR RDS ---
+# --- 1. THE SECURITY GROUP CONTAINER ---
 resource "aws_security_group" "rds_sg" {
   name        = "bedrock-rds-sg"
-  description = "Allow EKS access to RDS"
+  description = "Security group for Project Bedrock RDS instances"
   vpc_id      = module.vpc.vpc_id
 
-  ingress {
-    from_port       = 3306
-    to_port         = 3306
-    protocol        = "tcp"
-    security_groups = [module.eks.node_security_group_id]
+  # include an egress rule so the DB can send data back to the app
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
-  ingress {
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = [module.eks.node_security_group_id]
-  }
+
+  tags = { Project = "Bedrock" }
+}
+
+# --- 2. DECOUPLED RULES  ---
+
+# Rule for MySQL (Catalog Service)
+resource "aws_security_group_rule" "allow_eks_mysql" {
+  type                     = "ingress"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.rds_sg.id
+  source_security_group_id = module.eks.node_security_group_id # Trust the EKS nodes
+  description              = "Allow EKS nodes to reach MySQL RDS"
+}
+
+# Rule for PostgreSQL (Orders Service)
+resource "aws_security_group_rule" "allow_eks_postgres" {
+  type                     = "ingress"
+  from_port                = 5432
+  to_port                  = 5432
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.rds_sg.id
+  source_security_group_id = module.eks.node_security_group_id # Trust the EKS nodes
+  description              = "Allow EKS nodes to reach Postgres RDS"
 }
 
 resource "aws_db_subnet_group" "bedrock" {

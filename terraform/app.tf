@@ -27,35 +27,31 @@ resource "helm_release" "retail_app" {
   }
 
 
-  # --- Connect to RDS MySQL (Catalog) ---
+  # --- 2. CONNECT TO RDS MYSQL (CATALOG) ---
   set {
-    name  = "catalog.externalEndpoint"
+    name  = "catalog.mysql.host"
     value = aws_db_instance.catalog_db.address
   }
   set {
     name  = "catalog.mysql.port"
     value = "3306"
- }
- set {
-    name  = "catalog.secrets.dbHost"
-    value = aws_db_instance.catalog_db.address
   }
   set {
-    name  = "catalog.secrets.dbName"
-    value = "catalog_db"
+    name  = "catalog.mysql.dbName"
+    value = "catalogdb"
   }
   set {
-    name  = "catalog.secrets.dbUser"
+    name  = "catalog.mysql.username"
     value = jsondecode(aws_secretsmanager_secret_version.catalog_db_secret_val.secret_string)["username"]
   }
   set {
-    name  = "catalog.secrets.dbPassword"
+    name  = "catalog.mysql.password"
     value = jsondecode(aws_secretsmanager_secret_version.catalog_db_secret_val.secret_string)["password"]
   }
 
-  # --- Connect to RDS Postgres (Orders) ---
+  # --- 3. CONNECT TO RDS POSTGRES (ORDERS) ---
   set {
-    name  = "orders.externalEndpoint"
+    name  = "orders.postgresql.host"
     value = aws_db_instance.orders_db.address
   }
   set {
@@ -63,27 +59,22 @@ resource "helm_release" "retail_app" {
     value = "5432"
   }
   set {
-    name  = "orders.secrets.dbHost"
-    value = aws_db_instance.orders_db.address
+    name  = "orders.postgresql.dbName"
+    value = "ordersdb"
   }
   set {
-    name  = "orders.secrets.dbName"
-    value = "orders_db"
-  }
-  set {
-    name  = "orders.secrets.dbUser"
+    name  = "orders.postgresql.username"
     value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["username"]
   }
   set {
-    name  = "orders.secrets.dbPassword"
+    name  = "orders.postgresql.password"
     value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["password"]
   }
   
 
-  # --- CRITICAL: SHRINK PODS FOR T3.MICRO ---
-  # These settings force the app to fit on tiny nodes
-
-  # 1. Reduce UI
+ # --- 4. RESOURCE CONSTRAINTS (SHRINK PODS) ---
+  
+  # UI
   set {
     name  = "ui.resources.requests.cpu"
     value = "100m"
@@ -93,7 +84,7 @@ resource "helm_release" "retail_app" {
     value = "128Mi"
   }
 
-  # 2. Reduce Catalog
+  # Catalog
   set {
     name  = "catalog.resources.requests.cpu"
     value = "100m"
@@ -103,7 +94,7 @@ resource "helm_release" "retail_app" {
     value = "128Mi"
   }
 
-  # 3. Reduce Orders
+  # Orders
   set {
     name  = "orders.resources.requests.cpu"
     value = "100m"
@@ -113,7 +104,7 @@ resource "helm_release" "retail_app" {
     value = "128Mi"
   }
 
-  # 4. Reduce Checkout
+  # Checkout
   set {
     name  = "checkout.resources.requests.cpu"
     value = "100m"
