@@ -1,5 +1,7 @@
 resource "aws_iam_user" "dev_view" {
   name = "bedrock-dev-view"
+
+  tags = { Project = "Bedrock" }
 }
 
 # Console Access (ReadOnly)

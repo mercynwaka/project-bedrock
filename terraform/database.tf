@@ -13,6 +13,10 @@ resource "aws_security_group" "rds_sg" {
   }
 
   tags = { Project = "Bedrock" }
+  
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # --- 2. DECOUPLED RULES  ---
