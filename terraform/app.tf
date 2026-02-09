@@ -12,7 +12,9 @@ resource "helm_release" "retail_app" {
   chart      = "retail-store-sample-chart"
   version    = "0.8.5" # This version bundles the compatible UI
   namespace  = "retail-app"
-
+  
+  timeout    = 900
+  wait       = true
 
   # --- Disable In-Cluster DBs ---
   set {

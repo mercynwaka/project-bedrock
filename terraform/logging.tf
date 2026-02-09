@@ -1,3 +1,9 @@
+
+import {
+  to = kubernetes_namespace.amazon_cloudwatch
+  id = "amazon-cloudwatch"
+}
+
 # --- Create the Namespace for Logging ---
 resource "kubernetes_namespace" "amazon_cloudwatch" {
   metadata {
