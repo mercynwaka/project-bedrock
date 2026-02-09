@@ -49,7 +49,7 @@ module "eks" {
       min_size       = 1
       max_size       = 4
       desired_size   = 3
-      instance_types = ["t3.micro"]
+      instance_types = ["t3.small"]
       disk_size      = 20
       # Add policy for SSM (helpful for debugging)
       iam_role_additional_policies = {
