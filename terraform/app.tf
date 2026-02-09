@@ -18,38 +18,44 @@ resource "helm_release" "retail_app" {
 
   # --- Disable In-Cluster DBs ---
   set {
-    name  = "catalog.mysql.local"
+    name  = "catalog.mysql.enabled"
     value = "false"
   }
   set {
-    name  = "orders.postgresql.local"
+    name  = "orders.postgresql.enabled"
     value = "false"
   }
 
 
   # --- Connect to RDS MySQL (Catalog) ---
   set {
-    name  = "catalog.mysql.host"
+    name  = "catalog.externalEndpoint"
     value = aws_db_instance.catalog_db.address
   }
   set {
     name  = "catalog.mysql.port"
     value = "3306"
+ }
+ set {
+    name  = "catalog.secrets.dbHost"
+    value = aws_db_instance.catalog_db.address
   }
   set {
-    name = "catalog.mysql.username"
-
+    name  = "catalog.secrets.dbName"
+    value = "catalog_db"
+  }
+  set {
+    name  = "catalog.secrets.dbUser"
     value = jsondecode(aws_secretsmanager_secret_version.catalog_db_secret_val.secret_string)["username"]
   }
   set {
-    name = "catalog.mysql.password"
-    # ✅ DYNAMICALLY PULL PASSWORD FROM SECRET
+    name  = "catalog.secrets.dbPassword"
     value = jsondecode(aws_secretsmanager_secret_version.catalog_db_secret_val.secret_string)["password"]
   }
 
   # --- Connect to RDS Postgres (Orders) ---
   set {
-    name  = "orders.postgresql.host"
+    name  = "orders.externalEndpoint"
     value = aws_db_instance.orders_db.address
   }
   set {
@@ -57,15 +63,22 @@ resource "helm_release" "retail_app" {
     value = "5432"
   }
   set {
-    name = "orders.postgresql.username"
-
+    name  = "orders.secrets.dbHost"
+    value = aws_db_instance.orders_db.address
+  }
+  set {
+    name  = "orders.secrets.dbName"
+    value = "orders_db"
+  }
+  set {
+    name  = "orders.secrets.dbUser"
     value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["username"]
   }
   set {
-    name = "orders.postgresql.password"
-    # ✅ DYNAMICALLY PULL PASSWORD FROM SECRET
+    name  = "orders.secrets.dbPassword"
     value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["password"]
   }
+  
 
   # --- CRITICAL: SHRINK PODS FOR T3.MICRO ---
   # These settings force the app to fit on tiny nodes
