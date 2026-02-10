@@ -1,3 +1,10 @@
+resource "kubernetes_namespace" "retail_app" {
+  metadata {
+    name = "retail-app"
+  }
+  depends_on = [module.eks]
+}
+
 resource "helm_release" "retail_app" {
   name       = "retail-store-sample-app"
   repository = "oci://public.ecr.aws/aws-containers"
