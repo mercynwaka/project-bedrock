@@ -15,6 +15,11 @@ resource "helm_release" "retail_app" {
   timeout = 900
   wait    = true
 
+  set {
+    name  = "catalog.podLabels.app\\.kubernetes\\.io/owner"
+    value = "retail-store-sample"
+  }
+
   # --- 1. DISABLE IN-CLUSTER DATABASES ---
   set {
     name  = "catalog.mysql.enabled"
