@@ -42,13 +42,13 @@ jobs:
           AWS_REGION: us-east-1
 
       - name: Pre-Deploy Cleanup
-      run: |
-        # Delete duplicate MySQL resources that cause 'CrashLoopBackOff'
-        kubectl delete deployment retail-store-sample-app-catalog-mysql -n retail-app --ignore-not-found
-        kubectl delete statefulset retail-store-sample-app-catalog-mysql -n retail-app --ignore-not-found
+        run: |
+          # Delete duplicate MySQL resources that cause 'CrashLoopBackOff'
+          kubectl delete deployment retail-store-sample-app-catalog-mysql -n retail-app --ignore-not-found
+          kubectl delete statefulset retail-store-sample-app-catalog-mysql -n retail-app --ignore-not-found
         
-        # Delete the crashing catalog pod to force a fresh start
-        kubectl delete deployment retail-store-sample-app-catalog -n retail-app --ignore-not-found
+          # Delete the crashing catalog pod to force a fresh start
+          kubectl delete deployment retail-store-sample-app-catalog -n retail-app --ignore-not-found
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -82,7 +82,7 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           # 1. Fetch Password from AWS Secrets Manager
-          
+               
           SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id bedrock-catalog-db-creds --query SecretString --output text --region us-east-1)
 
           DB_PASSWORD=$(echo $SECRET_JSON | jq -r .password)
