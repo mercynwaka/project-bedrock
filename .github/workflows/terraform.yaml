@@ -46,7 +46,7 @@ jobs:
           AWS_REGION: us-east-1
 
       - name: Update KubeConfig
-        run: aws eks update-kubeconfig  --region us-east-1 --name project-bedrock-vpc
+        run: aws eks update-kubeconfig  --region us-east-1 --name project-bedrock-cluster
       
       - name: Pre-Deploy Cleanup
         run: |
