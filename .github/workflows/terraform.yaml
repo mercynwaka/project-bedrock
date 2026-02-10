@@ -6,7 +6,7 @@ on:
   pull_request:
 
 permissions:
-  contents: write  # Updated from 'read' so the pipeline can push grading.json
+  contents: write  
 
 jobs:
   terraform:
@@ -49,7 +49,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: us-east-1
 
-      # --- NEW AUTOMATION STEPS FOR STEP 6 ---
+      # --- AUTOMATION & DEPLOYMENT STEPS ---
 
       - name: Generate Grading Data
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -61,10 +61,36 @@ jobs:
 
       - name: Update Kubeconfig
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        
         run: aws eks update-kubeconfig --region us-east-1 --name project-bedrock-cluster
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+
+      # === NEW STEP: DEPLOY DATABASE & SECRETS ===
+      - name: Deploy Database and Secrets
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          # 1. Fetch Password from AWS Secrets Manager
+          
+          SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id bedrock-catalog-db-creds --query SecretString --output text --region us-east-1)
+
+          DB_PASSWORD=$(echo $SECRET_JSON | jq -r .password)
+          
+          # 2. Create/Update the Secret in Kubernetes
+          kubectl create secret generic catalog-db-secret \
+            --namespace retail-app \
+            --from-literal=password=$DB_PASSWORD \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # 3. Deploy the Database Manifest
+          # Uses ../ because we are inside the ./terraform directory
+          kubectl apply -f ../kubernetes/catalog-mysql.yaml
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
 
       - name: Deploy App via Script
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'

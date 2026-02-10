@@ -1,21 +1,14 @@
-resource "kubernetes_namespace" "retail_app" {
-  metadata {
-    name = "retail-app"
-  }
-  depends_on = [module.eks]
-}
-
 resource "helm_release" "retail_app" {
   name       = "retail-store-sample-app"
   repository = "oci://public.ecr.aws/aws-containers"
   chart      = "retail-store-sample-chart"
-  version    = "0.8.5" # This version bundles the compatible UI
+  version    = "0.8.5"
   namespace  = "retail-app"
 
   timeout = 900
   wait    = true
 
-  # --- Disable In-Cluster DBs ---
+  # --- 1. DISABLE IN-CLUSTER DATABASES ---
   set {
     name  = "catalog.mysql.enabled"
     value = "false"
@@ -25,70 +18,44 @@ resource "helm_release" "retail_app" {
     value = "false"
   }
 
-
-  # --- 2. CONNECT TO RDS MYSQL (CATALOG) ---
+  # --- 2. CATALOG: RDS MYSQL CONNECTION ---
+  # These 'extraEnv' blocks are the ONLY way to force the app out of in-memory mode
   set {
-    name  = "catalog.mysql.host"
-    value = aws_db_instance.catalog_db.address
-  }
-  set {
-    name  = "catalog.mysql.port"
-    value = "3306"
-  }
-
-  set {
-    name  = "catalog.database.type"
+    name  = "catalog.extraEnv.DB_TYPE"
     value = "mysql"
   }
   set {
-    name  = "catalog.mysql.dbName"
+    name  = "catalog.extraEnv.DB_ENDPOINT"
+    value = "${aws_db_instance.catalog_db.address}:3306"
+  }
+  set {
+    name  = "catalog.extraEnv.DB_USER"
+    value = "catalog"
+  }
+  set {
+    name  = "catalog.extraEnv.DB_NAME"
     value = "catalogdb"
   }
   set {
-    name  = "catalog.mysql.username"
-    value = jsondecode(aws_secretsmanager_secret_version.catalog_db_secret_val.secret_string)["username"]
-  }
-  set {
-    name  = "catalog.mysql.password"
+    name  = "catalog.extraEnv.DB_PASSWORD"
     value = jsondecode(aws_secretsmanager_secret_version.catalog_db_secret_val.secret_string)["password"]
   }
 
-  # --- 3. CONNECT TO RDS POSTGRES (ORDERS) ---
+  # --- 3. ORDERS: RDS POSTGRES CONNECTION ---
   set {
-    name  = "orders.postgresql.host"
-    value = aws_db_instance.orders_db.address
+    name  = "orders.extraEnv.SPRING_DATASOURCE_URL"
+    value = "jdbc:postgresql://${aws_db_instance.orders_db.address}:5432/ordersdb"
   }
   set {
-    name  = "orders.postgresql.port"
-    value = "5432"
-  }
-  set {
-    name  = "orders.postgresql.dbName"
-    value = "ordersdb"
-  }
-  set {
-    name  = "orders.postgresql.username"
+    name  = "orders.extraEnv.SPRING_DATASOURCE_USERNAME"
     value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["username"]
   }
   set {
-    name  = "orders.postgresql.password"
+    name  = "orders.extraEnv.SPRING_DATASOURCE_PASSWORD"
     value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["password"]
   }
 
-
-  # --- 4. RESOURCE CONSTRAINTS (SHRINK PODS) ---
-
-  # UI
-  set {
-    name  = "ui.resources.requests.cpu"
-    value = "100m"
-  }
-  set {
-    name  = "ui.resources.requests.memory"
-    value = "128Mi"
-  }
-
-  # Catalog
+  # --- 4. RESOURCE LIMITS (Keep pods small) ---
   set {
     name  = "catalog.resources.requests.cpu"
     value = "100m"
@@ -98,64 +65,10 @@ resource "helm_release" "retail_app" {
     value = "128Mi"
   }
 
-  # Orders
-  set {
-    name  = "orders.resources.requests.cpu"
-    value = "100m"
-  }
-  set {
-    name  = "orders.resources.requests.memory"
-    value = "128Mi"
-  }
-
-  # Checkout
-  set {
-    name  = "checkout.resources.requests.cpu"
-    value = "100m"
-  }
-  set {
-    name  = "checkout.resources.requests.memory"
-    value = "128Mi"
-  }
-
-  # --- 5. FIXING UI ENDPOINTS---
-
+  # --- 5. UI ENDPOINTS (Connect UI to Services) ---
   set {
     name  = "ui.app.endpoints.catalog"
     value = "http://retail-store-sample-app-catalog:80"
-  }
-  set {
-    name  = "ui.app.endpoints.orders"
-    value = "http://retail-store-sample-app-orders:80"
-  }
-  set {
-    name  = "ui.app.endpoints.checkout"
-    value = "http://retail-store-sample-app-checkout:80"
-  }
-  set {
-    name  = "ui.app.endpoints.carts"
-    value = "http://retail-store-sample-app-carts:80"
-  }
-
-  resource "kubernetes_config_map" "retail_store_ui" {
-    metadata {
-      name = "retail-store-sample-app-ui"
-      # Link to the namespace resource defined at the top of your file
-      namespace = kubernetes_namespace.retail_app.metadata[0].name
-    }
-
-    data = {
-      ENDPOINTS_ASSETS   = "http://retail-store-sample-app-assets:80"
-      ENDPOINTS_CARTS    = "http://retail-store-sample-app-carts:80"
-      ENDPOINTS_CATALOG  = "http://retail-store-sample-app-catalog:80"
-      ENDPOINTS_CHECKOUT = "http://retail-store-sample-app-checkout:80"
-      ENDPOINTS_ORDERS   = "http://retail-store-sample-app-orders:80"
-    }
-
-    # Ensure the app is installed before applying this config
-    depends_on = [
-      helm_release.retail_app
-    ]
   }
 
   depends_on = [
