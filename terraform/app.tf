@@ -26,39 +26,23 @@ resource "helm_release" "retail_app" {
   }
 
   # --- 2. CATALOG: RDS MYSQL CONNECTION ---
-  # These 'extraEnv' blocks are the ONLY way to force the app out of in-memory mode
+  set { name = "catalog.database.type"; value = "mysql" }
+  set { name = "catalog.mysql.host"; value = aws_db_instance.catalog_db.address }
+  set { name = "catalog.mysql.port"; value = "3306" }
+  set { name = "catalog.mysql.dbName"; value = "catalog" }
+  set { name = "catalog.mysql.username"; value = "catalog" }
   set {
-    name  = "catalog.extraEnv.DB_TYPE"
-    value = "mysql"
-  }
-  set {
-    name  = "catalog.extraEnv.DB_ENDPOINT"
-    value = "${aws_db_instance.catalog_db.address}:3306"
-  }
-  set {
-    name  = "catalog.extraEnv.DB_USER"
-    value = "catalog"
-  }
-  set {
-    name  = "catalog.extraEnv.DB_NAME"
-    value = "catalogdb"
-  }
-  set {
-    name  = "catalog.extraEnv.DB_PASSWORD"
+    name  = "catalog.mysql.password"
     value = jsondecode(aws_secretsmanager_secret_version.catalog_db_secret_val.secret_string)["password"]
   }
 
   # --- 3. ORDERS: RDS POSTGRES CONNECTION ---
+  set { name = "orders.postgresql.host"; value = aws_db_instance.orders_db.address }
+  set { name = "orders.postgresql.port"; value = "5432" }
+  set { name = "orders.postgresql.dbName"; value = "ordersdb" }
+  set { name = "orders.postgresql.username"; value = "catalog" }
   set {
-    name  = "orders.extraEnv.SPRING_DATASOURCE_URL"
-    value = "jdbc:postgresql://${aws_db_instance.orders_db.address}:5432/ordersdb"
-  }
-  set {
-    name  = "orders.extraEnv.SPRING_DATASOURCE_USERNAME"
-    value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["username"]
-  }
-  set {
-    name  = "orders.extraEnv.SPRING_DATASOURCE_PASSWORD"
+    name  = "orders.postgresql.password"
     value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["password"]
   }
 
