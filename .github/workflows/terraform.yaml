@@ -41,6 +41,9 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: us-east-1
 
+      - name: Update KubeConfig
+        run: aws eks update-kubeconfig --name project-bedrock-vpc
+      
       - name: Pre-Deploy Cleanup
         run: |
           # Delete duplicate MySQL resources that cause 'CrashLoopBackOff'
