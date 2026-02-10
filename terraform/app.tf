@@ -35,6 +35,11 @@ resource "helm_release" "retail_app" {
     name  = "catalog.mysql.port"
     value = "3306"
   }
+
+  set {
+    name  = "catalog.database.type"
+    value = "mysql"
+  }
   set {
     name  = "catalog.mysql.dbName"
     value = "catalogdb"
@@ -130,6 +135,27 @@ resource "helm_release" "retail_app" {
   set {
     name  = "ui.app.endpoints.carts"
     value = "http://retail-store-sample-app-carts:80"
+  }
+
+  resource "kubernetes_config_map" "retail_store_ui" {
+    metadata {
+      name = "retail-store-sample-app-ui"
+      # Link to the namespace resource defined at the top of your file
+      namespace = kubernetes_namespace.retail_app.metadata[0].name
+    }
+
+    data = {
+      ENDPOINTS_ASSETS   = "http://retail-store-sample-app-assets:80"
+      ENDPOINTS_CARTS    = "http://retail-store-sample-app-carts:80"
+      ENDPOINTS_CATALOG  = "http://retail-store-sample-app-catalog:80"
+      ENDPOINTS_CHECKOUT = "http://retail-store-sample-app-checkout:80"
+      ENDPOINTS_ORDERS   = "http://retail-store-sample-app-orders:80"
+    }
+
+    # Ensure the app is installed before applying this config
+    depends_on = [
+      helm_release.retail_app
+    ]
   }
 
   depends_on = [
