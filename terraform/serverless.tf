@@ -52,6 +52,8 @@ resource "aws_lambda_function" "processor" {
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 }
 
+
+
 # --- S3 TRIGGER ---
 resource "aws_lambda_permission" "allow_s3" {
   statement_id  = "AllowExecutionFromS3"

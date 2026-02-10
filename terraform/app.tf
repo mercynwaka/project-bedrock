@@ -5,16 +5,15 @@ resource "kubernetes_namespace" "retail_app" {
   depends_on = [module.eks]
 }
 
-# We use the Parent Chart because it automatically wires the UI to the Catalog/Cart.
 resource "helm_release" "retail_app" {
   name       = "retail-store-sample-app"
   repository = "oci://public.ecr.aws/aws-containers"
   chart      = "retail-store-sample-chart"
   version    = "0.8.5" # This version bundles the compatible UI
   namespace  = "retail-app"
-  
-  timeout    = 900
-  wait       = true
+
+  timeout = 900
+  wait    = true
 
   # --- Disable In-Cluster DBs ---
   set {
@@ -70,10 +69,10 @@ resource "helm_release" "retail_app" {
     name  = "orders.postgresql.password"
     value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["password"]
   }
-  
 
- # --- 4. RESOURCE CONSTRAINTS (SHRINK PODS) ---
-  
+
+  # --- 4. RESOURCE CONSTRAINTS (SHRINK PODS) ---
+
   # UI
   set {
     name  = "ui.resources.requests.cpu"
@@ -112,6 +111,25 @@ resource "helm_release" "retail_app" {
   set {
     name  = "checkout.resources.requests.memory"
     value = "128Mi"
+  }
+
+  # --- 5. FIXING UI ENDPOINTS---
+
+  set {
+    name  = "ui.app.endpoints.catalog"
+    value = "http://retail-store-sample-app-catalog:80"
+  }
+  set {
+    name  = "ui.app.endpoints.orders"
+    value = "http://retail-store-sample-app-orders:80"
+  }
+  set {
+    name  = "ui.app.endpoints.checkout"
+    value = "http://retail-store-sample-app-checkout:80"
+  }
+  set {
+    name  = "ui.app.endpoints.carts"
+    value = "http://retail-store-sample-app-carts:80"
   }
 
   depends_on = [

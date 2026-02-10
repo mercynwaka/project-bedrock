@@ -1,6 +1,6 @@
 # --- 1. THE SECURITY GROUP CONTAINER ---
 resource "aws_security_group" "rds_sg" {
-  name_prefix        = "bedrock-rds-sg-"
+  name_prefix = "bedrock-rds-sg-"
   description = "Security group for Project Bedrock RDS instances"
   vpc_id      = module.vpc.vpc_id
 
@@ -13,7 +13,7 @@ resource "aws_security_group" "rds_sg" {
   }
 
   tags = { Project = "Bedrock" }
-  
+
   lifecycle {
     create_before_destroy = true
   }
