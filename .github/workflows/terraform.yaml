@@ -41,6 +41,15 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: us-east-1
 
+      - name: Pre-Deploy Cleanup
+      run: |
+        # Delete duplicate MySQL resources that cause 'CrashLoopBackOff'
+        kubectl delete deployment retail-store-sample-app-catalog-mysql -n retail-app --ignore-not-found
+        kubectl delete statefulset retail-store-sample-app-catalog-mysql -n retail-app --ignore-not-found
+        
+        # Delete the crashing catalog pod to force a fresh start
+        kubectl delete deployment retail-store-sample-app-catalog -n retail-app --ignore-not-found
+
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
