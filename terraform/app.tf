@@ -119,7 +119,7 @@ set {
 # --- 5. UI ENDPOINTS (Connect UI to Services) ---
 set {
   name  = "ui.app.endpoints.catalog"
-  value = "http://retail-store-sample-app-catalog:80/catalogue"
+  value = "http://retail-store-sample-app-catalog:80"
 }
 
 set {
