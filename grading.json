@@ -4,6 +4,11 @@
     "type": "string",
     "value": "bedrock-assets-1164"
   },
+  "cloudwatch_log_group": {
+    "sensitive": false,
+    "type": "string",
+    "value": "/aws/lambda/bedrock-asset-processor"
+  },
   "cluster_endpoint": {
     "sensitive": false,
     "type": "string",
@@ -13,6 +18,16 @@
     "sensitive": false,
     "type": "string",
     "value": "project-bedrock-cluster"
+  },
+  "iam_user_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:iam::813594602707:user/bedrock-dev-view"
+  },
+  "iam_user_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "bedrock-dev-view"
   },
   "lambda_processor_arn": {
     "sensitive": false,
