@@ -72,10 +72,10 @@ resource "kubernetes_ingress_v1" "retail_ingress" {
 
       # --- SSL CONFIGURATION ---
 
-    
+
 
       # Listen on both HTTP (80) and HTTPS (443)
-       "alb.ingress.kubernetes.io/listen-ports" = jsonencode([{ "HTTP" : 80 }, { "HTTPS" : 443 }])
+      "alb.ingress.kubernetes.io/listen-ports" = jsonencode([{ "HTTP" : 80 }, { "HTTPS" : 443 }])
 
     }
   }
@@ -83,7 +83,7 @@ resource "kubernetes_ingress_v1" "retail_ingress" {
   spec {
     ingress_class_name = "alb"
     rule {
-      
+
       http {
         path {
           path      = "/"
