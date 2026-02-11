@@ -28,3 +28,17 @@ output "s3_bucket_arn" {
   description = "The ARN of the S3 bucket"
   value       = aws_s3_bucket.assets.arn
 }
+
+output "iam_user_name" {
+  description = "The IAM user created for grading"
+  value       = aws_iam_user.dev_view.name
+}
+
+output "iam_user_arn" {
+  description = "The ARN of the grading user"
+  value       = aws_iam_user.dev_view.arn
+}
+
+output "cloudwatch_log_group" {
+  value = "/aws/lambda/${aws_lambda_function.processor.function_name}"
+}

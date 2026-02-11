@@ -27,17 +27,29 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 data "archive_file" "lambda_zip" {
   type        = "zip"
   output_path = "${path.module}/lambda.zip"
+  
   source {
     content  = <<EOF
 import json
 import logging
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
 def lambda_handler(event, context):
-    for record in event['Records']:
-        key = record['s3']['object']['key']
-        logger.info(f"Image received: {key}")
-    return {'statusCode': 200, 'body': json.dumps('Done')}
+    try:
+        for record in event['Records']:
+            # Get the object key (filename)
+            key = record['s3']['object']['key']
+            logger.info(f"Image received: {key}")
+        
+        return {
+            'statusCode': 200,
+            'body': json.dumps('Successfully processed S3 event')
+        }
+    except Exception as e:
+        logger.error(f"Error processing event: {str(e)}")
+        raise e
 EOF
     filename = "index.py"
   }

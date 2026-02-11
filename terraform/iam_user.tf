@@ -1,13 +1,38 @@
 resource "aws_iam_user" "dev_view" {
   name = "bedrock-dev-view"
 
-  tags = { Project = "Bedrock" }
+  tags = { Project = "barakat-2025-capstone" }
 }
 
 # Console Access (ReadOnly)
 resource "aws_iam_user_policy_attachment" "dev_ro" {
   user       = aws_iam_user.dev_view.name
   policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
+}
+
+resource "aws_iam_user_login_profile" "dev_view_login" {
+  user    = aws_iam_user.dev_view.name
+  
+}
+
+# 3. Attach Specific S3 Upload Permission (Inline Policy)
+resource "aws_iam_user_policy" "grading_user_s3" {
+  name = "grading-user-s3-upload"
+  user = aws_iam_user.dev_view.name 
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action   = ["s3:PutObject", "s3:ListBucket"]
+        Effect   = "Allow"
+        Resource = [
+          aws_s3_bucket.assets_bucket.arn,
+          "${aws_s3_bucket.assets_bucket.arn}/*"
+        ]
+      }
+    ]
+  })
 }
 
 # Kubernetes Access (View Only)
