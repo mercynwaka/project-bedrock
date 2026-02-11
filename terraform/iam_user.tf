@@ -27,8 +27,8 @@ resource "aws_iam_user_policy" "grading_user_s3" {
         Action   = ["s3:PutObject", "s3:ListBucket"]
         Effect   = "Allow"
         Resource = [
-          aws_s3_bucket.assets_bucket.arn,
-          "${aws_s3_bucket.assets_bucket.arn}/*"
+          aws_s3_bucket.assets.arn,
+          "${aws_s3_bucket.assets.arn}/*"
         ]
       }
     ]
