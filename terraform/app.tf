@@ -46,7 +46,7 @@ resource "helm_release" "retail_app" {
     name  = "catalog.podLabels.app\\.kubernetes\\.io/component"
     value = "service"
   }
-}
+
 
 # --- 1. DISABLE IN-CLUSTER DATABASES ---
 set {
@@ -133,4 +133,4 @@ depends_on = [
   aws_db_instance.catalog_db,
   aws_db_instance.orders_db
 ]
-
+}
