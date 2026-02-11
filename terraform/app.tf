@@ -5,6 +5,10 @@ resource "kubernetes_namespace" "retail_app" {
   depends_on = [module.eks]
 }
 
+data "aws_secretsmanager_secret_version" "catalog_password" {
+  secret_id = aws_secretsmanager_secret.catalog_db_secret.id
+}
+
 resource "helm_release" "retail_app" {
   name       = "retail-store-sample-app"
   repository = "oci://public.ecr.aws/aws-containers"
@@ -14,6 +18,11 @@ resource "helm_release" "retail_app" {
 
   timeout = 900
   wait    = true
+
+  set_sensitive {
+    name  =  "catalog.mysql.password"
+    value = jsondecode(data.aws_secretsmanager_secret_version.catalog_password.secret_string)["password"]
+  }  
 
   set {
     name  = "catalog.podLabels.app\\.kubernetes\\.io/owner"
@@ -53,7 +62,7 @@ resource "helm_release" "retail_app" {
   }
   set {
     name  = "catalog.mysql.password"
-    value = jsondecode(aws_secretsmanager_secret_version.catalog_db_secret_val.secret_string)["password"]
+    value = jsondecode(data.aws_secretsmanager_secret_version.catalog_password.secret_string)["password"]
   }
 
   # --- 3. ORDERS: RDS POSTGRES CONNECTION ---
@@ -91,7 +100,12 @@ resource "helm_release" "retail_app" {
   # --- 5. UI ENDPOINTS (Connect UI to Services) ---
   set {
     name  = "ui.app.endpoints.catalog"
-    value = "http://retail-store-sample-app-catalog:80"
+    value = "http://retail-store-sample-app-catalog:80/catalogue"
+  }
+
+  set {
+    name  = "ui.service.type"
+    value = "LoadBalancer"
   }
 
   depends_on = [

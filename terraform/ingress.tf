@@ -72,20 +72,18 @@ resource "kubernetes_ingress_v1" "retail_ingress" {
 
       # --- SSL CONFIGURATION ---
 
-      "alb.ingress.kubernetes.io/certificate-arn" = "arn:aws:acm:us-east-1:813594602707:certificate/b757179c-cace-4820-bec2-2761485fb48b"
+    
 
       # Listen on both HTTP (80) and HTTPS (443)
-      "alb.ingress.kubernetes.io/listen-ports" = jsonencode([{ "HTTP" : 80 }, { "HTTPS" : 443 }])
+       "alb.ingress.kubernetes.io/listen-ports" = jsonencode([{ "HTTP" : 80 }, { "HTTPS" : 443 }])
 
-      # Redirect HTTP traffic to HTTPS automatically
-      "alb.ingress.kubernetes.io/ssl-redirect" = "443"
     }
   }
 
   spec {
     ingress_class_name = "alb"
     rule {
-      host = "africodes.com"
+      
       http {
         path {
           path      = "/"
