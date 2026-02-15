@@ -98,11 +98,11 @@ jobs:
           kubectl create secret generic catalog-db-secret \
             --namespace retail-app \
             --from-literal=password=$DB_PASSWORD \
-            --dry-run=client -o yaml | kubectl apply -k -
+            --dry-run=client -o yaml | kubectl apply -f -
 
           # 3. Deploy the Database Manifest
           # Uses ../ because we are inside the ./terraform directory
-          kubectl apply -k ../kubernetes/kustomization.yaml
+          kubectl apply -f https://github.com/aws-containers/retail-store-sample-app/releases/latest/download/kubernetes.yaml
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
