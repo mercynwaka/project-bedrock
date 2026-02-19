@@ -6,7 +6,7 @@ resource "kubernetes_namespace" "retail_app" {
 }
 
 data "aws_secretsmanager_secret_version" "catalog_password" {
-  secret_id = aws_secretsmanager_secret.catalog_db_secret.id
+  secret_id = aws_secretsmanager_secret.catalog_secret.id
 }
 data "aws_secretsmanager_secret_version" "orders_password" {
   secret_id = aws_secretsmanager_secret.orders_db_secret.id

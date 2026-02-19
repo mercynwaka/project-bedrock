@@ -83,7 +83,7 @@ resource "aws_db_instance" "catalog" {
   skip_final_snapshot    = true
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.bedrock.name
-
+  apply_immediately      = true
   # --- SECRETS MANAGER INTEGRATION ---
 
   # 1. Reference the username from the secret (consistent)
