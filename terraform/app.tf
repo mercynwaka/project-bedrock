@@ -130,7 +130,11 @@ set {
 set {
   name  = "orders.postgresql.password"
   value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["password"]
-}  value = "100m"
+}
+
+set {
+  name  = "catalog.resources.requests.cpu"
+  value = "100m"
 }
 set {
   name  = "catalog.resources.requests.memory"
