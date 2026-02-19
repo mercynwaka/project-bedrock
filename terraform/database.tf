@@ -65,20 +65,20 @@ resource "aws_secretsmanager_secret" "catalog_db_secret" {
 resource "aws_secretsmanager_secret_version" "catalog_db_secret_val" {
   secret_id = aws_secretsmanager_secret.catalog_db_secret.id
   secret_string = jsonencode({
-    username = "adminuser"
+    username = "catalog"
     password = random_password.db_password.result
   })
 }
 
 # --- MYSQL (Catalog) ---
-resource "aws_db_instance" "catalog_db" {
+resource "aws_db_instance" "catalog" {
   identifier             = "bedrock-catalog-db"
   allocated_storage      = 20
   storage_type           = "gp2"
   engine                 = "mysql"
   engine_version         = "8.0"
   instance_class         = "db.t3.micro"
-  db_name                = "catalogdb"
+  db_name                = "catalog"
   parameter_group_name   = "default.mysql8.0"
   skip_final_snapshot    = true
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
