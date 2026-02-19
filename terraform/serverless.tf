@@ -27,7 +27,7 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 data "archive_file" "lambda_zip" {
   type        = "zip"
   output_path = "${path.module}/lambda.zip"
-  
+
   source {
     content  = <<EOF
 import json

@@ -46,155 +46,154 @@ resource "helm_release" "retail_app" {
     name  = "catalog.podLabels.app\\.kubernetes\\.io/component"
     value = "service"
   }
-  
-  
 
-# --- 1. DISABLE IN-CLUSTER DATABASES ---
-set {
-  name  = "catalog.mysql.enabled"
-  value = "false"
-}
-set {
-  name  = "orders.postgresql.enabled"
-  value = "false"
-}
 
-# --- 2. CATALOG: RDS MYSQL CONNECTION ---
-set {
-  name  = "catalog.database.type"
-  value = "mysql"
-}
-set {
-  name  = "catalog.mysql.host"
-  value = aws_db_instance.catalog_db.address
-}
-set {
-  name  = "catalog.mysql.port"
-  value = "3306"
-}
-set {
-  name  = "catalog.mysql.dbName"
-  value = "catalog"
-}
-set {
-  name  = "catalog.mysql.username"
-  value = "catalog"
-}
-set {
-  name  = "catalog.mysql.password"
-  value = jsondecode(data.aws_secretsmanager_secret_version.catalog_password.secret_string)["password"]
-}
 
-# --- 3. ORDERS: RDS POSTGRES CONNECTION ---
-set {
-  name  = "orders.postgresql.host"
-  value = aws_db_instance.orders_db.address
-}
-set {
-  name  = "orders.postgresql.port"
-  value = "5432"
-}
-set {
-  name  = "orders.postgresql.dbName"
-  value = "ordersdb"
-}
-set {
-  name  = "orders.postgresql.username"
-  value = "catalog"
-}
-set {
-  name  = "orders.postgresql.password"
-  value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["password"]
-}
-
-# --- 4. RESOURCE LIMITS (Keep pods small) ---
-set {
-  name  = "catalog.resources.requests.cpu"
-# --- 3. ORDERS: RDS POSTGRES CONNECTION ---
-set {
-  name  = "orders.postgresql.host"
-  value = aws_db_instance.orders_db.address
-}
-set {
-  name  = "orders.postgresql.port"
-  value = "5432"
-}
-set {
-  name  = "orders.postgresql.dbName"
-  value = "ordersdb"
-}
-set {
-  name  = "orders.postgresql.username"
-  value = "catalog"
-}
-set {
-  name  = "orders.postgresql.password"
-  value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["password"]
-}
-
-set {
-  name  = "catalog.resources.requests.cpu"
-  value = "100m"
-}
-set {
-  name  = "catalog.resources.requests.memory"
-  value = "128Mi"
-}
-
-# --- 5. UI ENDPOINTS (Connect UI to Services) ---
-set {
-  name  = "ui.app.endpoints.catalog"
-  value = "http://retail-store-sample-app-catalog:80"
-}
-set {
-    name  = "ui.endpoints.carts"
-    value = "http://retail-store-sample-app-carts:80"
+  # --- 1. DISABLE IN-CLUSTER DATABASES ---
+  set {
+    name  = "catalog.mysql.enabled"
+    value = "false"
   }
-set {
-    name  = "ui.endpoints.orders"
-    value = "http://retail-store-sample-app-orders:80"
+  set {
+    name  = "orders.postgresql.enabled"
+    value = "false"
   }
-set {
-  name  = "ui.service.type"
-  value = "LoadBalancer"
-}
 
-depends_on = [
-  kubernetes_namespace.retail_app,
-  module.eks,
-  aws_db_instance.catalog_db,
-  aws_db_instance.orders_db
-]
-}
+  # --- 2. CATALOG: RDS MYSQL CONNECTION ---
+  set {
+    name  = "catalog.database.type"
+    value = "mysql"
+  }
+  set {
+    name  = "catalog.mysql.host"
+    value = aws_db_instance.catalog_db.address
+  }
+  set {
+    name  = "catalog.mysql.port"
+    value = "3306"
+  }
+  set {
+    name  = "catalog.mysql.dbName"
+    value = "catalog"
+  }
+  set {
+    name  = "catalog.mysql.username"
+    value = "catalog"
+  }
+  set {
+    name  = "catalog.mysql.password"
+    value = jsondecode(data.aws_secretsmanager_secret_version.catalog_password.secret_string)["password"]
+  }
 
-# --- ALB INGRESS---
+  # --- 3. ORDERS: RDS POSTGRES CONNECTION ---
+  set {
+    name  = "orders.postgresql.host"
+    value = aws_db_instance.orders_db.address
+  }
+  set {
+    name  = "orders.postgresql.port"
+    value = "5432"
+  }
+  set {
+    name  = "orders.postgresql.dbName"
+    value = "ordersdb"
+  }
+  set {
+    name  = "orders.postgresql.username"
+    value = "catalog"
+  }
+  set {
+    name  = "orders.postgresql.password"
+    value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["password"]
+  }
 
-resource "kubernetes_ingress_v1" "retail_ui" {
-  metadata {
-    name   = "retail-ui-ingress"
-    namespace = kubernetes_namespace.retail_app.metadata[0].name
-    annotations = {
-      "alb.ingress.kubernetes.io/scheme"       = "internet-facing"
-      "alb.ingress.kubernetes.io/target-type"  = "ip"
-      "alb.ingress.kubernetes.io/listen-ports" = "[{\"HTTP\": 80}]"
-     
+  # --- 4. RESOURCE LIMITS (Keep pods small) ---
+  set {
+    name = "catalog.resources.requests.cpu"
+    # --- 3. ORDERS: RDS POSTGRES CONNECTION ---
+    set {
+      name  = "orders.postgresql.host"
+      value = aws_db_instance.orders_db.address
     }
+    set {
+      name  = "orders.postgresql.port"
+      value = "5432"
+    }
+    set {
+      name  = "orders.postgresql.dbName"
+      value = "ordersdb"
+    }
+    set {
+      name  = "orders.postgresql.username"
+      value = "catalog"
+    }
+    set {
+      name  = "orders.postgresql.password"
+      value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["password"]
+    }
+
+    set {
+      name  = "catalog.resources.requests.cpu"
+      value = "100m"
+    }
+    set {
+      name  = "catalog.resources.requests.memory"
+      value = "128Mi"
+    }
+
+    # --- 5. UI ENDPOINTS (Connect UI to Services) ---
+    set {
+      name  = "ui.app.endpoints.catalog"
+      value = "http://retail-store-sample-app-catalog:80"
+    }
+    set {
+      name  = "ui.endpoints.carts"
+      value = "http://retail-store-sample-app-carts:80"
+    }
+    set {
+      name  = "ui.endpoints.orders"
+      value = "http://retail-store-sample-app-orders:80"
+    }
+    set {
+      name  = "ui.service.type"
+      value = "ClusterIP"
+    }
+
+    depends_on = [
+      kubernetes_namespace.retail_app,
+      module.eks,
+      aws_db_instance.catalog_db,
+      aws_db_instance.orders_db
+    ]
   }
 
-  spec {
-    ingress_class_name = "alb"
-    rule {
-      
-     
-      http {
-        path {
-          path      = "/"
-          path_type = "Prefix"
-          backend {
-            service {
-              name = "retail-store-sample-app-ui" 
-              port {
-                number = 80
+  # --- ALB INGRESS---
+
+  resource "kubernetes_ingress_v1" "retail_ui" {
+    metadata {
+      name      = "retail-ui-ingress"
+      namespace = kubernetes_namespace.retail_app.metadata[0].name
+      annotations = {
+        "alb.ingress.kubernetes.io/scheme"       = "internet-facing"
+        "alb.ingress.kubernetes.io/target-type"  = "ip"
+        "alb.ingress.kubernetes.io/listen-ports" = "[{\"HTTP\": 80}]"
+
+      }
+    }
+
+    spec {
+      ingress_class_name = "alb"
+      rule {
+        http {
+          path {
+            path      = "/"
+            path_type = "Prefix"
+            backend {
+              service {
+                name = "retail-store-sample-app-ui"
+                port {
+                  number = 80
+                }
               }
             }
           }
@@ -202,6 +201,5 @@ resource "kubernetes_ingress_v1" "retail_ui" {
       }
     }
   }
-
-  depends_on = [helm_release.retail_app] 
+  depends_on = [helm_release.retail_app]
 }
