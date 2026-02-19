@@ -76,9 +76,30 @@ resource "helm_release" "retail_app" {
     name  = "catalog.mysql.username"
     value = "catalog"
   }
+
+  set {
+    name  = "catalog.database.secretName"
+    value = "catalog-db" 
+  }
+
+  # This tells the Helm chart to mount the CSI volume
+  set {
+    name  = "catalog.secrets.enabled"
+    value = "true"
+  }
+  set {
+    name  = "catalog.secrets.providerClass"
+    value = "catalog-db-aws-provider"
+  }
   set {
     name  = "catalog.mysql.password"
     value = jsondecode(data.aws_secretsmanager_secret_version.catalog_password.secret_string)["password"]
+  }
+
+  # --- SERVICE ACCOUNT (The Identity Bridge) ---
+  set {
+    name  = "catalog.serviceAccount.name"
+    value = "retail-store-sample-app-catalog"
   }
 
   # --- 3. ORDERS: RDS POSTGRES CONNECTION ---
@@ -125,6 +146,11 @@ resource "helm_release" "retail_app" {
   set {
     name  = "ui.app.endpoints.orders"
     value = "http://retail-store-sample-app-orders:80"
+  }
+
+  set {
+    name  = "ui.endpoints.catalog"
+    value = "http://retail-store-sample-app-catalog:80"
   }
   set {
     name  = "ui.service.type"
