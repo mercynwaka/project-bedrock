@@ -66,7 +66,8 @@ resource "aws_secretsmanager_secret_version" "catalog_secret_val" {
   secret_id = aws_secretsmanager_secret.catalog_secret.id
   secret_string = jsonencode({
     username = "catalog"
-    password = random_password.db_password.result
+#   password = random_password.db_password.result
+    password = "BedrockPassword2026!"
   })
 }
 
