@@ -57,13 +57,13 @@ resource "random_password" "db_password" {
 }
 
 # 2. Create the Secret Container
-resource "aws_secretsmanager_secret" "catalog_db_secret" {
+resource "aws_secretsmanager_secret" "catalog_secret" {
   name = "bedrock-catalog-db-creds"
 }
 
 # 3. Store the credentials (username & password) in the secret
-resource "aws_secretsmanager_secret_version" "catalog_db_secret_val" {
-  secret_id = aws_secretsmanager_secret.catalog_db_secret.id
+resource "aws_secretsmanager_secret_version" "catalog_secret_val" {
+  secret_id = aws_secretsmanager_secret.catalog_secret.id
   secret_string = jsonencode({
     username = "catalog"
     password = random_password.db_password.result
@@ -84,13 +84,11 @@ resource "aws_db_instance" "catalog" {
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.bedrock.name
   apply_immediately      = true
+  
   # --- SECRETS MANAGER INTEGRATION ---
-
-  # 1. Reference the username from the secret (consistent)
-  username = jsondecode(aws_secretsmanager_secret_version.catalog_db_secret_val.secret_string)["username"]
-
-  # 2. Reference the password dynamically
-  password = jsondecode(aws_secretsmanager_secret_version.catalog_db_secret_val.secret_string)["password"]
+  
+  username = jsondecode(aws_secretsmanager_secret_version.catalog_secret_val.secret_string)["username"]
+  password = jsondecode(aws_secretsmanager_secret_version.catalog_secret_val.secret_string)["password"]
 }
 
 
@@ -128,4 +126,3 @@ resource "aws_db_instance" "orders_db" {
   username = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["username"]
   password = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["password"]
 }
-
