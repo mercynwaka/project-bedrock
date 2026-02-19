@@ -148,6 +148,9 @@ resource "kubernetes_ingress_v1" "retail_ui" {
       "alb.ingress.kubernetes.io/scheme"       = "internet-facing"
       "alb.ingress.kubernetes.io/target-type"  = "ip"
       "alb.ingress.kubernetes.io/listen-ports" = "[{\"HTTP\": 80}]"
+      "alb.ingress.kubernetes.io/healthcheck-path" = "/"
+      "alb.ingress.kubernetes.io/healthcheck-port" = "traffic-port"
+      "alb.ingress.kubernetes.io/success-codes"    = "200-399"
     }
   }
 
