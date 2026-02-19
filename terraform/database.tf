@@ -12,7 +12,7 @@ resource "aws_security_group" "rds_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = { Project = "Bedrock" }
+  tags = { Project = "barakat-2025-capstone" }
 
   lifecycle {
     create_before_destroy = true
@@ -46,7 +46,7 @@ resource "aws_security_group_rule" "allow_eks_postgres" {
 resource "aws_db_subnet_group" "bedrock" {
   name       = "bedrock-db-subnet-group"
   subnet_ids = module.vpc.private_subnets
-  tags       = { Project = "Bedrock" }
+  tags       = { Project = "barakat-2025-capstone" }
 }
 
 # 1. Generate a random password automatically
@@ -80,6 +80,7 @@ resource "aws_db_instance" "catalog" {
   engine_version         = "8.0"
   instance_class         = "db.t3.micro"
   db_name                = "catalog"
+  password               = "BedrockPassword2026!"
   parameter_group_name   = "default.mysql8.0"
   skip_final_snapshot    = true
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
