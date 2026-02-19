@@ -14,7 +14,7 @@ resource "helm_release" "retail_app" {
   repository = "oci://public.ecr.aws/aws-containers"
   chart      = "retail-store-sample-chart"
   version    = "0.8.5"
-  namespace  = "retail-app"
+  namespace  = kubernetes_namespace.retail_app.metadata[0].name
 
   timeout = 900
   wait    = true
@@ -110,7 +110,27 @@ set {
 # --- 4. RESOURCE LIMITS (Keep pods small) ---
 set {
   name  = "catalog.resources.requests.cpu"
-  value = "100m"
+# --- 3. ORDERS: RDS POSTGRES CONNECTION ---
+set {
+  name  = "orders.postgresql.host"
+  value = aws_db_instance.orders_db.address
+}
+set {
+  name  = "orders.postgresql.port"
+  value = "5432"
+}
+set {
+  name  = "orders.postgresql.dbName"
+  value = "ordersdb"
+}
+set {
+  name  = "orders.postgresql.username"
+  value = "catalog"
+}
+set {
+  name  = "orders.postgresql.password"
+  value = jsondecode(aws_secretsmanager_secret_version.orders_db_secret_val.secret_string)["password"]
+}  value = "100m"
 }
 set {
   name  = "catalog.resources.requests.memory"
@@ -141,4 +161,43 @@ depends_on = [
   aws_db_instance.catalog_db,
   aws_db_instance.orders_db
 ]
+}
+
+# --- ALB INGRESS---
+
+resource "kubernetes_ingress_v1" "retail_ui" {
+  metadata {
+    name   = "retail-ui-ingress"
+    namespace = kubernetes_namespace.retail_app.metadata[0].name
+    annotations = {
+      "alb.ingress.kubernetes.io/scheme"       = "internet-facing"
+      "alb.ingress.kubernetes.io/target-type"  = "ip"
+      "alb.ingress.kubernetes.io/listen-ports" = "[{\"HTTP\": 80}]"
+     
+    }
+  }
+
+  spec {
+    ingress_class_name = "alb"
+    rule {
+      
+     
+      http {
+        path {
+          path      = "/"
+          path_type = "Prefix"
+          backend {
+            service {
+              name = "retail-store-sample-app-ui" 
+              port {
+                number = 80
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  depends_on = [helm_release.retail_app] 
 }

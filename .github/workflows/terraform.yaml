@@ -6,12 +6,13 @@ on:
   pull_request:
 
 permissions:
-  contents: write  
+  contents: write
 
 jobs:
   terraform:
     name: "Terraform & Deploy"
     runs-on: ubuntu-latest
+    # These credentials apply to all steps automatically
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -31,95 +32,33 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
 
       - name: Terraform Plan
         id: plan
         if: github.event_name == 'pull_request'
         run: terraform plan -input=false
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
 
-      - name: Update KubeConfig
-        run: aws eks update-kubeconfig  --region us-east-1 --name project-bedrock-cluster
-      
-      - name: Pre-Deploy Cleanup
-        run: |
-          # Delete duplicate MySQL resources that cause 'CrashLoopBackOff'
-          kubectl delete deployment retail-store-sample-app-catalog-mysql -n retail-app --ignore-not-found
-          kubectl delete statefulset retail-store-sample-app-catalog-mysql -n retail-app --ignore-not-found
-        
-          # Delete the crashing catalog pod to force a fresh start
-          kubectl delete deployment retail-store-sample-app-catalog -n retail-app --ignore-not-found
-
+      # This step builds the EKS Cluster, RDS Databases, AND deploys the App via Helm
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
 
       # --- AUTOMATION & DEPLOYMENT STEPS ---
 
       - name: Generate Grading Data
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform output -json > ../grading.json
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
 
       - name: Update Kubeconfig
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        
         run: aws eks update-kubeconfig --region us-east-1 --name project-bedrock-cluster
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
 
-      # === NEW STEP: DEPLOY DATABASE & SECRETS ===
-      - name: Deploy Database and Secrets
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: |
-          # 1. Fetch Password from AWS Secrets Manager
-               
-          SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id bedrock-catalog-db-creds --query SecretString --output text --region us-east-1)
-
-          DB_PASSWORD=$(echo $SECRET_JSON | jq -r .password)
-          
-          # 2. Create/Update the Secret in Kubernetes
-          kubectl create secret generic catalog-db-secret \
-            --namespace retail-app \
-            --from-literal=password=$DB_PASSWORD \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-          # 3. Deploy the Database Manifest
-          # Uses ../ because we are inside the ./terraform directory
-          kubectl apply -f https://github.com/aws-containers/retail-store-sample-app/releases/latest/download/kubernetes.yaml -n retail-app
- 
-          kubectl patch svc ui -n retail-app -p '{"metadata":{"annotations":{"service.beta.kubernetes.io/aws-load-balancer-scheme":"internet-facing","service.beta.kubernetes.io/aws-load-balancer-type":"external","service.beta.kubernetes.io/aws-load-balancer-nlb-target-type":"ip"}}}'
-          kubectl rollout restart deployment ui -n retail-app
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
-
+      # Custom grader script (kept intact)
       - name: Deploy App via Script
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           chmod +x ../scripts/deploy-app.sh
           ../scripts/deploy-app.sh
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
 
       - name: Commit and Push Grading JSON
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
