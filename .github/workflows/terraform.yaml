@@ -60,11 +60,11 @@ jobs:
           chmod +x ../scripts/deploy-app.sh
           ../scripts/deploy-app.sh
 
-   #   - name: Commit and Push Grading JSON
-    #    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-     #   run: |
-      #    git config --global user.name 'github-actions'
-       #   git config --global user.email 'github-actions@github.com'
-        #  git add ../grading.json
-         # git commit -m "docs: update grading data [skip ci]" || echo "No changes to commit"
-         # git push
+      - name: Commit and Push Grading JSON
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git add ../grading.json
+          git commit -m "docs: update grading data [skip ci]" || echo "No changes to commit"
+          git push
