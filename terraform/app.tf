@@ -62,7 +62,7 @@ resource "helm_release" "retail_app" {
   }
   set {
     name  = "catalog.mysql.host"
-    value = aws_db_instance.catalog_db.address
+    value = aws_db_instance.catalog.address
   }
   set {
     name  = "catalog.mysql.port"
@@ -79,7 +79,7 @@ resource "helm_release" "retail_app" {
 
   set {
     name  = "catalog.database.secretName"
-    value = "catalog-db" 
+    value = "catalog" 
   }
 
   # This tells the Helm chart to mount the CSI volume
@@ -89,7 +89,7 @@ resource "helm_release" "retail_app" {
   }
   set {
     name  = "catalog.secrets.providerClass"
-    value = "catalog-db-aws-provider"
+    value = "catalog-aws-provider"
   }
   set {
     name  = "catalog.mysql.password"
@@ -160,7 +160,7 @@ resource "helm_release" "retail_app" {
   depends_on = [
     kubernetes_namespace.retail_app,
     module.eks,
-    aws_db_instance.catalog_db,
+    aws_db_instance.catalog,
     aws_db_instance.orders_db
   ]
 }
