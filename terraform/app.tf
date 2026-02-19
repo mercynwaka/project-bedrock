@@ -119,11 +119,11 @@ resource "helm_release" "retail_app" {
     value = "http://retail-store-sample-app-catalog:80"
   }
   set {
-    name  = "ui.endpoints.carts"
+    name  = "ui.app.endpoints.carts"
     value = "http://retail-store-sample-app-carts:80"
   }
   set {
-    name  = "ui.endpoints.orders"
+    name  = "ui.app.endpoints.orders"
     value = "http://retail-store-sample-app-orders:80"
   }
   set {
