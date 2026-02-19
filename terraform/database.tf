@@ -58,7 +58,7 @@ resource "random_password" "db_password" {
 
 # 2. Create the Secret Container
 resource "aws_secretsmanager_secret" "catalog_secret" {
-  name = "bedrock-catalog-db-creds"
+  name = "bedrock-catalog-db-creds-v2"
 }
 
 # 3. Store the credentials (username & password) in the secret

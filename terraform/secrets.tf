@@ -12,7 +12,7 @@ resource "kubernetes_manifest" "catalog_db_secret_provider" {
       provider = "aws"
       parameters = {
         objects = <<-EOT
-          - objectName: "bedrock-catalog-db-creds"
+          - objectName: "bedrock-catalog-db-creds-v2"
             objectType: "secretsmanager"
             jmesPath: 
               - path: "username"
@@ -22,7 +22,7 @@ resource "kubernetes_manifest" "catalog_db_secret_provider" {
         EOT
       }
       secretObjects = [{
-        secretName = "catalog-db"
+        secretName = "catalog"
         type       = "Opaque"
         data = [
           { objectName = "username", key = "username" },
