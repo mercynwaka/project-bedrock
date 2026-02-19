@@ -20,7 +20,7 @@ resource "helm_release" "retail_app" {
   namespace  = kubernetes_namespace.retail_app.metadata[0].name
 
   timeout = 900
-  wait    = true
+  wait    = false
 
   set_sensitive {
     name  = "catalog.mysql.password"
