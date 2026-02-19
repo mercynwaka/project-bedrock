@@ -24,8 +24,19 @@ resource "helm_release" "retail_app" {
 
   set_sensitive {
     name  = "catalog.mysql.password"
+    
     value = jsondecode(aws_secretsmanager_secret_version.catalog_secret_val.secret_string)["password"]
   }
+  set {
+    name  = "ui.frontend.title"
+    value = "The most public Secret Shop"
+  }
+
+  set {
+    name  = "ui.frontend.brand"
+    value = "Secret"
+  }
+ 
   
   # --- LABELS ---
   set {

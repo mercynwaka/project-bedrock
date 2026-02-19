@@ -61,13 +61,14 @@ resource "aws_secretsmanager_secret" "catalog_secret" {
   name = "bedrock-catalog-db-creds-v2"
 }
 
+
 # 3. Store the credentials (username & password) in the secret
 resource "aws_secretsmanager_secret_version" "catalog_secret_val" {
   secret_id = aws_secretsmanager_secret.catalog_secret.id
   secret_string = jsonencode({
     username = "catalog"
-##   password = random_password.db_password.result
-    password = "BedrockPassword2026!"
+   password = random_password.db_password.result
+    
   })
 }
 
@@ -80,7 +81,8 @@ resource "aws_db_instance" "catalog" {
   engine_version         = "8.0"
   instance_class         = "db.t3.micro"
   db_name                = "catalog"
-  
+
+   
   parameter_group_name   = "default.mysql8.0"
   skip_final_snapshot    = true
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
