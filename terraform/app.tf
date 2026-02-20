@@ -19,6 +19,9 @@ resource "helm_release" "retail_app" {
   version    = "0.8.5"
   namespace  = kubernetes_namespace.retail_app.metadata[0].name
 
+  force_update = true
+  recreate_pods = true
+
   timeout = 900
   wait    = false
 
