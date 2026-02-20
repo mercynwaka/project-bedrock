@@ -14,8 +14,8 @@ data "aws_secretsmanager_secret_version" "orders_password" {
 
 resource "helm_release" "retail_app" {
   name       = "retail-store-sample-app"
-  repository = "oci://public.ecr.aws/aws-containers"
-  chart      = "retail-store-sample-chart"
+  repository = "https://aws-containers.github.io/retail-store-sample-app"
+  chart      = "retail-store-sample-app"
   version    = "0.8.5"
   namespace  = kubernetes_namespace.retail_app.metadata[0].name
 
@@ -40,6 +40,31 @@ resource "helm_release" "retail_app" {
     value = "Secret"
   }
  
+  # Dynamic Database Configuration (The Permanent Fix)
+  set {
+    name  = "catalog.database.type"
+    value = "mysql"
+  }
+  
+  # Inject the password directly from your AWS Secret resource
+  set_sensitive {
+    name  = "catalog.secrets.dbPassword"
+    value = jsondecode(aws_secretsmanager_secret_version.catalog_secret_val.secret_string)["password"]
+  }
+
+  set {
+    name  = "ui.frontend.catalogTarget"
+    value = "http://retail-store-sample-app-catalog.retail-app.svc.cluster.local:80"
+  }
+  set {
+    name  = "ui.frontend.cartsTarget"
+    value = "http://retail-store-sample-app-carts.retail-app.svc.cluster.local:80"
+  }
+
+  set {
+    name  = "catalog.secrets.dbUser"
+    value = "admin" # Or your specific DB username
+  }  
   
   # --- LABELS ---
   set {
