@@ -30,6 +30,26 @@ resource "helm_release" "retail_app" {
 
     value = jsondecode(aws_secretsmanager_secret_version.catalog_secret_val.secret_string)["password"]
   }
+
+  set {
+    name  = "ui.image.repository"
+    value = "public.ecr.aws/aws-containers/retail-store-sample-ui"
+  }
+
+  set {
+    name  = "ui.image.tag"
+    value = "1.0.0"
+  }
+
+  set {
+    name  = "catalog.image.repository"
+    value = "public.ecr.aws/aws-containers/retail-store-sample-catalog"
+  }
+
+  set {
+    name  = "catalog.image.tag"
+    value = "1.0.0"
+  }
   set {
     name  = "ui.frontend.title"
     value = "The most public Secret Shop"
