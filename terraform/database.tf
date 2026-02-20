@@ -67,30 +67,30 @@ resource "aws_secretsmanager_secret_version" "catalog_secret_val" {
   secret_id = aws_secretsmanager_secret.catalog_secret.id
   secret_string = jsonencode({
     username = "catalog"
-   password = random_password.db_password.result
-    
+    password = random_password.db_password.result
+
   })
 }
 
 # --- MYSQL (Catalog) ---
 resource "aws_db_instance" "catalog" {
-  identifier             = "bedrock-catalog-db"
-  allocated_storage      = 20
-  storage_type           = "gp2"
-  engine                 = "mysql"
-  engine_version         = "8.0"
-  instance_class         = "db.t3.micro"
-  db_name                = "catalog"
+  identifier        = "bedrock-catalog-db"
+  allocated_storage = 20
+  storage_type      = "gp2"
+  engine            = "mysql"
+  engine_version    = "8.0"
+  instance_class    = "db.t3.micro"
+  db_name           = "catalog"
 
-   
+
   parameter_group_name   = "default.mysql8.0"
   skip_final_snapshot    = true
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.bedrock.name
   apply_immediately      = true
-  
+
   # --- SECRETS MANAGER INTEGRATION ---
-  
+
   username = jsondecode(aws_secretsmanager_secret_version.catalog_secret_val.secret_string)["username"]
   password = jsondecode(aws_secretsmanager_secret_version.catalog_secret_val.secret_string)["password"]
 }

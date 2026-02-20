@@ -14,20 +14,20 @@ data "aws_secretsmanager_secret_version" "orders_password" {
 
 resource "helm_release" "retail_app" {
   name       = "retail-store-sample-app"
-  repository = "https://aws-containers.github.io/retail-store-sample-app"
-  chart      = "retail-store-sample-app"
+  repository = "oci://public.ecr.aws/aws-containers"
+  chart      = "retail-store-sample-chart"
   version    = "0.8.5"
   namespace  = kubernetes_namespace.retail_app.metadata[0].name
 
-  force_update = true
+  force_update  = true
   recreate_pods = true
 
   timeout = 900
   wait    = false
 
   set_sensitive {
-    name  = "catalog.mysql.password"
-    
+    name = "catalog.mysql.password"
+
     value = jsondecode(aws_secretsmanager_secret_version.catalog_secret_val.secret_string)["password"]
   }
   set {
@@ -39,13 +39,13 @@ resource "helm_release" "retail_app" {
     name  = "ui.frontend.brand"
     value = "Secret"
   }
- 
+
   # Dynamic Database Configuration (The Permanent Fix)
   set {
     name  = "catalog.database.type"
     value = "mysql"
   }
-  
+
   # Inject the password directly from your AWS Secret resource
   set_sensitive {
     name  = "catalog.secrets.dbPassword"
@@ -53,19 +53,19 @@ resource "helm_release" "retail_app" {
   }
 
   set {
-    name  = "ui.frontend.catalogTarget"
-    value = "http://retail-store-sample-app-catalog.retail-app.svc.cluster.local:80"
+    name  = "ui.endpoints.catalog"
+    value = "http://retail-store-sample-app-catalog:80"
   }
   set {
-    name  = "ui.frontend.cartsTarget"
-    value = "http://retail-store-sample-app-carts.retail-app.svc.cluster.local:80"
+    name  = "ui.endpoints.carts"
+    value = "http://retail-store-sample-app-carts:80"
   }
 
   set {
     name  = "catalog.secrets.dbUser"
     value = "admin" # Or your specific DB username
-  }  
-  
+  }
+
   # --- LABELS ---
   set {
     name  = "catalog.podLabels.app\\.kubernetes\\.io/owner"
@@ -118,7 +118,7 @@ resource "helm_release" "retail_app" {
 
   set {
     name  = "catalog.database.secretName"
-    value = "catalog" 
+    value = "catalog"
   }
 
   # This tells the Helm chart to mount the CSI volume
@@ -210,9 +210,9 @@ resource "kubernetes_ingress_v1" "retail_ui" {
     name      = "retail-ui-ingress"
     namespace = kubernetes_namespace.retail_app.metadata[0].name
     annotations = {
-      "alb.ingress.kubernetes.io/scheme"       = "internet-facing"
-      "alb.ingress.kubernetes.io/target-type"  = "ip"
-      "alb.ingress.kubernetes.io/listen-ports" = "[{\"HTTP\": 80}]"
+      "alb.ingress.kubernetes.io/scheme"           = "internet-facing"
+      "alb.ingress.kubernetes.io/target-type"      = "ip"
+      "alb.ingress.kubernetes.io/listen-ports"     = "[{\"HTTP\": 80}]"
       "alb.ingress.kubernetes.io/healthcheck-path" = "/"
       "alb.ingress.kubernetes.io/healthcheck-port" = "traffic-port"
       "alb.ingress.kubernetes.io/success-codes"    = "200-399"
